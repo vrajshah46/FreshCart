@@ -5,8 +5,6 @@
 .env.production
 .env.test
 
-echo "server/.env" >> .gitignore
-
 # Logs
 logs
 *.log

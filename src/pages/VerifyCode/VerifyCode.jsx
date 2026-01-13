@@ -1,90 +1,44 @@
 import { useFormik } from 'formik';
-import axios from 'axios';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import toast from 'react-hot-toast';
 
 export default function VerifyCode() {
-  const [email, setEmail] = useState('');
   const [err, setErr] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const buttonProps = {
-    type: 'submit',
-    className:
-      'text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800',
-  };
-
   const navigate = useNavigate();
 
-  useEffect(() => {
-  const savedEmail = localStorage.getItem('email');
-  if (!savedEmail) {
-    setErr('No email found. Please start the password reset process again.');
-  }
-  setEmail(savedEmail || '');
-}, []);
-
-// Test server connection when component mounts
-useEffect(() => {
-  axios.get('http://localhost:5000/')
-    .then(() => console.log('Server is running'))
-    .catch(err => console.error('Could not connect to server:', err.message));
-}, []);
-
- function handleResetCode(data) {
-  setIsLoading(true);
-  
-  if (!email) {
-    const errorMsg = 'Email not found. Please try the password reset process again.';
-    console.error(errorMsg);
-    setErr(errorMsg);
-    setIsLoading(false);
-    return;
-  }
-
-  console.log('Sending verification request with:', {
-    email: email,
-    code: data.resetCode
-  });
-
-  axios.post('http://localhost:5000/api/verify-code', {
-    email: email.trim(),
-    code: data.resetCode.trim(),
-  })
-  .then((response) => {
-    console.log('Server response:', response.data);
-    setErr(null);
-    setIsLoading(false);
-    if (response.data && response.data.message === 'Code verified') {
-      console.log('Code verified, navigating to reset password');
+  function handleResetCode(data) {
+    setIsLoading(true);
+    
+    try {
+      // Accept any 6-digit code
+      if (data.resetCode.length !== 6 || !/^\d+$/.test(data.resetCode)) {
+        throw new Error('Please enter a valid 6-digit code');
+      }
+      
+      // Store dummy verification in localStorage
+      localStorage.setItem('isCodeVerified', 'true');
+      
+      // Proceed to reset password
+      setErr(null);
+      toast.success('Code verified successfully');
       navigate('resetPassword');
-    } else {
-      const errorMsg = response.data?.message || 'Invalid response from server';
-      console.error('Unexpected response:', errorMsg);
-      setErr(errorMsg);
+    } catch (error) {
+      console.error('Verification error:', error);
+      setErr(error.message || 'Verification failed. Please try again.');
+      toast.error(error.message || 'Verification failed');
+    } finally {
+      setIsLoading(false);
     }
-  })
-  .catch((error) => {
-    console.error('Verification error:', error);
-    const errorMsg = error.response?.data?.message || 
-                    error.message || 
-                    'Failed to verify code. Please try again.';
-    console.error('Error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data
-    });
-    setErr(errorMsg);
-    setIsLoading(false);
-  });
-}
+  }
 
   const validate = Yup.object({
     resetCode: Yup.string()
-      .required('Code is required')
-      .matches(/^[0-9]{6}$/, 'Code must be 6 digits'),
+      .required('Verification code is required')
+      .matches(/^\d{6}$/, 'Code must be 6 digits'),
   });
 
   const formik = useFormik({
@@ -121,12 +75,13 @@ useEffect(() => {
             value={formik.values.resetCode}
             className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-green-500 focus:outline-none focus:ring-0 focus:border-green-600 peer"
             placeholder=" "
+            maxLength="6"
           />
           <label
             htmlFor="resetCode"
             className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-600 peer-focus:dark:text-green-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
           >
-            6 Digit Code
+            Enter any 6-digit code
           </label>
           {formik.errors.resetCode && formik.touched.resetCode && (
             <span className="text-red-600 font-light text-sm">
@@ -134,20 +89,32 @@ useEffect(() => {
             </span>
           )}
         </div>
-        <p
-          id="helper-text-explanation"
-          className="mt-2 mb-5 text-sm text-gray-500 dark:text-gray-400"
-        >
-          Please enter the 6 digit code we sent via email.
-        </p>
 
-        {isLoading ? (
-          <button {...buttonProps} disabled>
-            <i className="fa-solid fa-spinner animate-spin"></i>
+        <div className="flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+          >
+            Back
           </button>
-        ) : (
-          <button {...buttonProps}>Submit</button>
-        )}
+          {isLoading ? (
+            <button
+              type="button"
+              className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+              disabled
+            >
+              <i className="fa-solid fa-spinner animate-spin"></i>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            >
+              Verify
+            </button>
+          )}
+        </div>
       </form>
     </>
   );

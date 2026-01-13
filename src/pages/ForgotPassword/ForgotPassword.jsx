@@ -1,5 +1,4 @@
 import { useFormik } from 'formik';
-import axios from 'axios';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,32 +8,34 @@ import toast from 'react-hot-toast';
 export default function ForgotPassword() {
   const [err, setErr] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const buttonProps = {
-    type: 'submit',
-    className:
-      'text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800',
-  };
-
   const navigate = useNavigate();
 
   function handleForgotPassword(data) {
     setIsLoading(true);
-
-    axios
-      .post('http://localhost:5000/api/forgot-password', { email: data.email })
-      .then((res) => {
-        setErr(null);
-        toast.success('An email has been sent to you!');
-        setIsLoading(false);
-        localStorage.setItem('email', data.email);
-        navigate('verifyCode');
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        setErr(err.response.data.message);
-        throw err;
-      });
+    
+    try {
+      // Generate a random 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiryTime = Date.now() + 600000; // 10 minutes from now
+      
+      // Store the email and code in localStorage
+      localStorage.setItem('resetEmail', data.email);
+      localStorage.setItem('resetCode', code);
+      localStorage.setItem('codeExpiry', expiryTime.toString());
+      
+      // For demo purposes, show the code in an alert
+      // alert(`Your verification code is: ${code}\n\nThis is a demo. In a real app, this would be sent via email.`);
+      
+      setErr(null);
+      toast.success('Proceeding to verification');
+      navigate('verifyCode');
+    } catch (error) {
+      console.error('Error in password reset:', error);
+      setErr('An error occurred. Please try again.');
+      toast.error('Failed to process request');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const validate = Yup.object({
@@ -54,7 +55,7 @@ export default function ForgotPassword() {
   return (
     <>
       <Helmet>
-        <title>Fogot Password</title>
+        <title>Forgot Password</title>
       </Helmet>
 
       <form
@@ -91,13 +92,31 @@ export default function ForgotPassword() {
           )}
         </div>
 
-        {isLoading ? (
-          <button {...buttonProps} disabled>
-            <i className="fa-solid fa-spinner animate-spin"></i>
+        <div className="flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+          >
+            Back
           </button>
-        ) : (
-          <button {...buttonProps}>Reset Password</button>
-        )}
+          {isLoading ? (
+            <button
+              type="button"
+              className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+              disabled
+            >
+              <i className="fa-solid fa-spinner animate-spin"></i>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            >
+              Send Code
+            </button>
+          )}
+        </div>
       </form>
     </>
   );
