@@ -1,6 +1,7 @@
 import { useFormik } from 'formik';
 import axios from 'axios';
 import * as Yup from 'yup';
+import toast from 'react-hot-toast';
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authContext } from '../../context/Auth/Auth';
@@ -21,24 +22,35 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  function handleLogin(data) {
+  function handleLogin(values) {
     setIsLoading(true);
+
     axios
-      .post('https://ecommerce.routemisr.com/api/v1/auth/signin', data)
-      .then((data) => {
-        setUserToken(data.data.token);
-        localStorage.setItem('authToken', data.data.token);
-        setErr(null);
-        setIsLoading(false);
-        if (data.data.message === 'success') {
-          navigate('/');
-        }
+      .post('https://ecommerce.routemisr.com/api/v1/auth/signin', values)
+      .then((res) => {
+
+        toast.success('Login successful');
+
+        // Save token
+        localStorage.setItem('authToken', res.data.token);
+
+        // Update context
+        setUserToken(res.data.token);
+
+        // Redirect
+        navigate('/');
       })
       .catch((err) => {
+
+        toast.error(err.response?.data?.message || 'Login failed');
+        setErr(err.response?.data?.message || 'Something went wrong');
+
+      })
+      .finally(() => {
         setIsLoading(false);
-        setErr(err.response.data.message);
       });
   }
+
 
   const validate = Yup.object({
     email: Yup.string()

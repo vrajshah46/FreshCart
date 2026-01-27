@@ -27,13 +27,17 @@ export default function Register() {
       .then((res) => {
         setErr(null);
         toast.success('Account created successfully');
-        setUserToken(data.data.token);
-        localStorage.setItem('authToken', data.data.token);
+
+        setUserToken(res.data.token);
+        localStorage.setItem('authToken', res.data.token);
+
         setIsLoading(false);
+
         if (res.data.message === 'success') {
           navigate('/login');
         }
       })
+
       .catch((err) => {
         toast.error('Please try again');
         setIsLoading(false);
@@ -67,7 +71,7 @@ export default function Register() {
     phone: Yup.string()
       .required('Phone number is required')
       .matches(
-        /^[0-9]{10}$/,
+        /^01[0-2|5]{1}[0-9]{8}$/,
         'Phone number is not valid (123-456-7890)'
       ),
   });

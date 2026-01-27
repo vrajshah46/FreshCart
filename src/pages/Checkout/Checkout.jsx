@@ -57,7 +57,7 @@ export default function Checkout() {
     phone: Yup.string()
       .required('Phone number is required')
       .matches(
-        /^[0-9]{10}$/,
+        /^01[0-2|5]{1}[0-9]{8}$/,
         'Phone number is not valid (01234567891)'
       ),
   });
