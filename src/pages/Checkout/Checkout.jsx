@@ -23,7 +23,7 @@ export default function Checkout() {
   function handleCheckout(data) {
     setIsLoading(true);
     console.log('Processing order with data:', data);
-    
+
     const checkoutPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         try {
@@ -57,7 +57,7 @@ export default function Checkout() {
     phone: Yup.string()
       .required('Phone number is required')
       .matches(
-        /^01[0-2|5]{1}[0-9]{8}$/,
+        /^[0-9]{10}$/,
         'Phone number is not valid (01234567891)'
       ),
   });

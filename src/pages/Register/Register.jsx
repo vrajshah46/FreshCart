@@ -67,7 +67,7 @@ export default function Register() {
     phone: Yup.string()
       .required('Phone number is required')
       .matches(
-        /^01[0-2|5]{1}[0-9]{8}$/,
+        /^[0-9]{10}$/,
         'Phone number is not valid (123-456-7890)'
       ),
   });
