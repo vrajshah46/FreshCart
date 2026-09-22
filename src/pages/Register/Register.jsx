@@ -20,30 +20,40 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  function handleRegister(data) {
-    setIsLoading(true);
-    axios
-      .post('https://ecommerce.routemisr.com/api/v1/auth/signup', data)
-      .then((res) => {
-        setErr(null);
-        toast.success('Account created successfully');
+  async function handleRegister(data) {
+    try {
+      setIsLoading(true);
 
-        setUserToken(res.data.token);
-        localStorage.setItem('authToken', res.data.token);
+      const res = await axios.post(
+        'https://ecommerce.routemisr.com/api/v1/auth/signup',
+        data
+      );
 
-        setIsLoading(false);
+      // Save token
+      localStorage.setItem('authToken', res.data.token);
 
-        if (res.data.message === 'success') {
-          navigate('/login');
-        }
-      })
+      // Optional: set user state (if using context)
+      setUserToken(res.data.token);
 
-      .catch((err) => {
-        toast.error('Please try again');
-        setIsLoading(false);
-        setErr(err.response.data.message);
-      });
+      toast.success('Account created successfully');
+
+      // Redirect to HOME page directly
+      navigate('/');
+
+    } catch (err) {
+
+      const msg =
+        err.response?.data?.message || 'Something went wrong';
+
+      toast.error(msg);
+      setErr(msg);
+
+    } finally {
+      setIsLoading(false);
+    }
   }
+
+
 
   const validate = Yup.object({
     name: Yup.string()

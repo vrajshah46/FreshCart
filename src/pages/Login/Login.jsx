@@ -18,9 +18,40 @@ export default function Login() {
       'sm:w-36 w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800',
   };
 
-  const loginData = { email: 'demo1@demo.com', password: '123456@demo' };
-
   const navigate = useNavigate();
+
+  async function handleDemoLogin() {
+    setIsLoading(true);
+    const randomNum = Math.floor(Math.random() * 10000);
+    const demoUser = {
+      name: `Demo User ${randomNum}`,
+      email: `demo${randomNum}@demo.com`,
+      password: '123456',
+      rePassword: '123456',
+      phone: '01012345678'
+    };
+
+    try {
+      // First register the demo user
+      await axios.post('https://ecommerce.routemisr.com/api/v1/auth/signup', demoUser);
+      
+      // Then login with the registered credentials
+      const loginRes = await axios.post('https://ecommerce.routemisr.com/api/v1/auth/signin', {
+        email: demoUser.email,
+        password: demoUser.password
+      });
+
+      toast.success('Demo login successful');
+      localStorage.setItem('authToken', loginRes.data.token);
+      setUserToken(loginRes.data.token);
+      navigate('/');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Demo login failed');
+      setErr(err.response?.data?.message || 'Something went wrong');
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   function handleLogin(values) {
     setIsLoading(true);
@@ -147,7 +178,7 @@ export default function Login() {
             {isLoading ? (
               <button
                 type="button"
-                onClick={() => handleLogin(loginData)}
+                onClick={handleDemoLogin}
                 className={buttonProps.className}
               >
                 <i className="fa-solid fa-spinner animate-spin"></i>
@@ -155,11 +186,11 @@ export default function Login() {
             ) : (
               <button
                 type="button"
-                onClick={() => handleLogin(loginData)}
+                onClick={handleDemoLogin}
                 className={buttonProps.className}
               >
                 Demo Login
-              </button>
+              </button>  
             )}
           </div>
         </form>

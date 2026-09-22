@@ -51,14 +51,14 @@ export default function ProductDetails() {
               <Slider {...settings}>
                 {ProdDetails.images
                   ? ProdDetails.images.map((img, index) => (
-                      <div key={index} className="w-full h-[460px]">
-                        <img
-                          className="w-full h-full object-contain rounded-lg"
-                          src={img}
-                          alt={`Product image ${index + 1}`}
-                        />
-                      </div>
-                    ))
+                    <div key={index} className="w-full h-[460px]">
+                      <img
+                        className="w-full h-full object-contain rounded-lg"
+                        src={img}
+                        alt={`Product image ${index + 1}`}
+                      />
+                    </div>
+                  ))
                   : ''}
               </Slider>
             </div>

@@ -12,20 +12,20 @@ export default function ForgotPassword() {
 
   function handleForgotPassword(data) {
     setIsLoading(true);
-    
+
     try {
       // Generate a random 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       const expiryTime = Date.now() + 600000; // 10 minutes from now
-      
+
       // Store the email and code in localStorage
       localStorage.setItem('resetEmail', data.email);
       localStorage.setItem('resetCode', code);
       localStorage.setItem('codeExpiry', expiryTime.toString());
-      
+
       // For demo purposes, show the code in an alert
       // alert(`Your verification code is: ${code}\n\nThis is a demo. In a real app, this would be sent via email.`);
-      
+
       setErr(null);
       toast.success('Proceeding to verification');
       navigate('verifyCode');
@@ -39,7 +39,7 @@ export default function ForgotPassword() {
   }
 
   const validate = Yup.object({
-    email: Yup.string()
+    email: Yup.string() 
       .required('Email is required')
       .email('Email is not valid'),
   });
